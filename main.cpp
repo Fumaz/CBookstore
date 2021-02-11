@@ -51,7 +51,7 @@ struct Book {
 
     static Book editInteractively(Book book) {
         cout << "Please insert the book's title: ";
-        cin >> book.title;
+        getline(cin >> ws, book.title);
 
         cout << "Please insert the amount of pages: ";
         cin >> book.pages;
@@ -69,7 +69,7 @@ struct Book {
             string input;
 
             cout << "Please insert the book's title/id: ";
-            cin >> input;
+            getline(cin >> ws, input);
 
             try {
                 try {
@@ -95,7 +95,7 @@ struct Book {
 
     bool exists() const;
 
-    void display() {
+    void display() const {
         cout << "Information for book #" << this->id << endl << endl;
         cout << "Title: " << this->title << endl;
         cout << "Pages: " << this->pages << endl;
@@ -112,16 +112,12 @@ const int SIZE = 10000;
 Book books[SIZE];
 
 void Book::remove() const {
-    for (int i = 0; i < SIZE; i++) {
-        if (this->equals(books[i])) {
-            for (int k = i; k < SIZE - 1; k++) {
-                books[k] = books[k + 1];
-            }
-
-            books[SIZE - 1] = Book{};
-            i--;
-        }
+    for (int i = this->id; i < SIZE; i++) {
+        books[i] = books[i + 1];
+        books[i].id = i;
     }
+
+    books[SIZE - 1] = Book{};
 }
 
 void Book::add() {
@@ -183,6 +179,10 @@ int getLibrarySize() {
     return size;
 }
 
+bool isLibraryEmpty() {
+    return getLibrarySize() == 0;
+}
+
 void displaySpacer() {
     cout << "-----------------------------------------" << endl;
 }
@@ -195,8 +195,8 @@ void displayMenu() {
     cout << "n - Adds a new book to the store." << endl;
     cout << "r - Removes a book from the store." << endl;
     cout << "s - Search for a book and display its information." << endl;
-    cout << "l - List all books." << endl;
-    cout << "f - List all books and their information." << endl << endl;
+    cout << "l - List all books and their information." << endl;
+    cout << "q - Quits from the program." << endl << endl;
     cout << "> ";
 
     char choice;
@@ -217,6 +217,11 @@ void displayMenu() {
             break;
         }
         case 'r': {
+            if (isLibraryEmpty()) {
+                cout << "The library is empty!" << endl;
+                break;
+            }
+
             Book book = Book::searchInteractively();
             book.remove();
 
@@ -224,21 +229,54 @@ void displayMenu() {
             break;
         }
         case 's': {
+            if (isLibraryEmpty()) {
+                cout << "The library is empty!" << endl;
+                break;
+            }
+
             Book book = Book::searchInteractively();
             book.display();
             break;
         }
         case 'l': {
+            if (isLibraryEmpty()) {
+                cout << "The library is empty!" << endl;
+                break;
+            }
 
+            for (const auto &book : books) {
+                if (!book.valid) {
+                    continue;
+                }
+
+                book.display();
+                cout << endl;
+            }
+            break;
+        }
+        case 'q': {
+            exit(0);
+        }
+        default: {
+            cout << "Invalid choice, please try again." << endl;
         }
     }
 
+    cout << "Press enter to continue.";
+    cin.ignore();
+    cin.get();
 }
+
+#pragma clang diagnostic push
+#pragma ide diagnostic ignored "EndlessLoop"
 
 int main() {
     srand(time(nullptr));
     cout << "Bookstore Manager v0.1-DEV" << endl;
 
-    std::cout << "Hello, World!" << std::endl;
-    return 0;
+    while (true) {
+        displayMenu();
+    }
 }
+
+#pragma clang diagnostic pop
